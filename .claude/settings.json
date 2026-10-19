@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(**)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci)",
+      "Bash(npx playwright:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Edit(/.claude/skills/pw_setup/**)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase --continue:*)",
+      "Bash(git merge --continue:*)",
+      "Bash(rm -rf:*)",
+      "Bash(printenv:*)",
+      "Bash(env:*)",
+      "Bash(taskkill:*)",
+      "Bash(Stop-Process:*)",
+      "Bash(*Stop-Process*)",
+      "Bash(pkill:*)",
+      "Bash(kill:*)",
+      "Read(./.env)",
+      "Read(./.auth/**)"
+    ]
+  },
+  "autoMemoryEnabled": true
+}

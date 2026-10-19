@@ -1,0 +1,3217 @@
+<title>Playwright AI Harness</title>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
+/>
+<style>
+  :root {
+    --paper: #ecf0f1;
+    --surface: #ffffff;
+    --surface-2: #e2e7e8;
+    --ink: #2c3e50;
+    --ink-rgb: 44, 62, 80;
+    --ink-strong: #111111;
+    --muted: #5c6b6c;
+    --soft: #5c6b6c;
+    --rule-solid: #d5dbdb;
+    --accent: #16a085;
+    --accent-tint: rgba(22, 160, 133, 0.1);
+    --accent-strong: #0e7a66;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15201e;
+      --surface: #1e2b28;
+      --surface-2: #243330;
+      --ink: #ecf0f1;
+      --ink-rgb: 236, 240, 241;
+      --ink-strong: #ffffff;
+      --muted: #9fb0b1;
+      --soft: #9fb0b1;
+      --rule-solid: #30423e;
+      --accent: #2ed1ae;
+      --accent-tint: rgba(46, 209, 174, 0.16);
+      --accent-strong: #52e6c4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15201e;
+    --surface: #1e2b28;
+    --surface-2: #243330;
+    --ink: #ecf0f1;
+    --ink-rgb: 236, 240, 241;
+    --ink-strong: #ffffff;
+    --muted: #9fb0b1;
+    --soft: #9fb0b1;
+    --rule-solid: #30423e;
+    --accent: #2ed1ae;
+    --accent-tint: rgba(46, 209, 174, 0.16);
+    --accent-strong: #52e6c4;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family:
+      "Geist",
+      -apple-system,
+      sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #deck {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .slide {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.25rem, 4vw, 3rem) 1.25rem;
+    overflow-y: auto;
+  }
+  .slide:not([hidden]) {
+    display: flex;
+  }
+
+  .slide-inner {
+    max-width: 880px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-family: "Instrument Serif", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+    line-height: 1.12;
+    text-wrap: balance;
+    margin: 0 0 1.25rem;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0 0 1.75rem;
+    line-height: 1.5;
+  }
+
+  .ladder {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .ladder li {
+    font-size: clamp(1.05rem, 1.9vw, 1.4rem);
+    line-height: 1.4;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  .ladder li.muted {
+    color: var(--muted);
+    font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  }
+  .ladder li.punch {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+    color: var(--accent);
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+    margin-top: 0.25rem;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 600px) {
+    .two-col {
+      grid-template-columns: 1fr;
+    }
+  }
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--rule-solid);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .concept-card .tag {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.6rem;
+  }
+  .concept-card h3 {
+    font-family: "Geist", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .concept-card p {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .callout-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  .callout {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: var(--ink);
+    border-left: 3px solid var(--rule-solid);
+    padding-left: 1rem;
+  }
+  .callout b {
+    color: var(--accent);
+  }
+
+  .diagram-wrap {
+    margin-top: 1rem;
+  }
+  .diagram-wrap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .diagram-wrap.compact {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.5rem;
+  }
+
+  .intro-line {
+    font-size: clamp(1rem, 1.7vw, 1.15rem);
+    color: var(--muted);
+    max-width: 66ch;
+    margin: 0 0 1.25rem;
+    line-height: 1.5;
+  }
+
+  /* comparison cards (judgment pillar) -- rendered as native DOM, not an image */
+  .cmp-topic {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0.9rem 0 0.4rem;
+  }
+  .cmp-row {
+    display: grid;
+    grid-template-columns: 1fr 44px 1fr;
+    align-items: stretch;
+    gap: 0;
+  }
+  @media (max-width: 640px) {
+    .cmp-row {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+  .cmp-card {
+    background: var(--surface);
+    border: 1px solid var(--rule-solid);
+    border-radius: 6px;
+    padding: 0.85rem 0.95rem;
+  }
+  .cmp-card.enforce {
+    background: var(--accent-tint);
+    border: 1.2px solid var(--accent);
+  }
+  .cmp-tag {
+    font-family: "Geist Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 5px;
+  }
+  .cmp-card.enforce .cmp-tag {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .cmp-claim {
+    font-size: 0.92rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+    line-height: 1.32;
+    color: var(--ink);
+  }
+  .cmp-why {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: 0;
+  }
+  .cmp-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Geist Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--soft);
+  }
+
+  .demo-checkpoints {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin-top: 0.85rem;
+  }
+  @media (max-width: 640px) {
+    .demo-checkpoints {
+      grid-template-columns: 1fr;
+    }
+  }
+  .checkpoint {
+    background: var(--surface);
+    border: 1px solid var(--rule-solid);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+  }
+  .checkpoint.gate {
+    background: var(--accent-tint);
+    border-color: var(--accent);
+  }
+  .checkpoint .num {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .checkpoint h4 {
+    margin: 0.3rem 0 0.4rem;
+    font-size: 1rem;
+    font-family: "Geist", sans-serif;
+    color: var(--ink);
+  }
+  .checkpoint p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .close-mark {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: clamp(1.15rem, 2vw, 1.35rem);
+    color: var(--ink);
+    line-height: 1.55;
+    max-width: 62ch;
+    margin: 0 0 1.3rem;
+  }
+  .close-question {
+    font-family: "Geist", sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    color: var(--accent);
+    max-width: 62ch;
+    line-height: 1.4;
+  }
+
+  .cover-eyebrow {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.25rem;
+  }
+  .cover-title {
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    line-height: 1.05;
+    text-wrap: balance;
+    margin: 0 0 1.25rem;
+  }
+  .cover-sub {
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+    color: var(--muted);
+    max-width: 46ch;
+    line-height: 1.5;
+    margin: 0 0 2rem;
+  }
+
+  nav.deck-nav {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 1.1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--rule-solid);
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  }
+  .nav-btn {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border: 1px solid var(--rule-solid);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+  }
+  .nav-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .nav-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .dots {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rule-solid);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .dot[aria-current="true"] {
+    background: var(--accent);
+    width: 18px;
+    border-radius: 4px;
+  }
+  .dot:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .counter {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 52px;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .dots {
+      display: none;
+    }
+  }
+
+  /* -- Code samples -- */
+  .code-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1rem 0 0.35rem;
+  }
+  .code {
+    background: var(--surface-2);
+    border: 1px solid var(--rule-solid);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 0.95rem;
+    margin: 0 0 0.5rem;
+    overflow-x: auto;
+  }
+  .code pre {
+    margin: 0;
+    font-family: "Geist Mono", monospace;
+    font-size: clamp(0.68rem, 1.05vw, 0.8rem);
+    line-height: 1.6;
+    color: var(--ink);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .code .c {
+    color: var(--muted);
+  }
+  .code .k {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .code .o {
+    color: var(--muted);
+  }
+  .code-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.45;
+    margin: 0 0 0.9rem;
+  }
+  .code-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .code-two {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* -- Cheat sheet slide (also the print target -- see @media print below) -- */
+  .cs-wrap {
+    max-width: 900px;
+  }
+  .cs-h1 {
+    font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+    margin-bottom: 0.5rem;
+  }
+  .cs-q0 {
+    border: 1.4px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin: 0.75rem 0 1.25rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    background: var(--accent-tint);
+  }
+  .cs-q0 b {
+    color: var(--accent);
+  }
+  .cs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem 1.5rem;
+  }
+  .cs-item {
+    border-top: 1px solid var(--rule-solid);
+    padding-top: 0.5rem;
+  }
+  .cs-item .cs-n {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.25rem;
+  }
+  .cs-item h3 {
+    font-size: 0.98rem;
+    margin: 0.1rem 0 0.25rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .cs-item p {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  /* Printing from anywhere in the deck prints only the cheat-sheet slide. */
+  @media print {
+    nav.deck-nav {
+      display: none !important;
+    }
+    #deck,
+    body,
+    html {
+      height: auto !important;
+    }
+    .slide {
+      display: none !important;
+    }
+    .cheat-sheet-slide {
+      display: block !important;
+      position: static !important;
+      height: auto !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      background: #fff !important;
+    }
+    .cheat-sheet-slide .cs-wrap {
+      max-width: none;
+      margin: 0;
+    }
+    body {
+      background: #fff !important;
+      color: #000 !important;
+    }
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+  }
+</style>
+
+<div id="deck">
+  <section class="slide" data-title="Cover">
+    <div class="slide-inner">
+      <p class="cover-eyebrow">A personal journey into AI-tested automation</p>
+      <h1 class="cover-title">The Playwright AI Harness</h1>
+      <p class="cover-sub">
+        How a small, disciplined AI harness lets any engineer own the test
+        quality for their own feature.
+      </p>
+    </div>
+  </section>
+
+  <section class="slide" data-title="The Cost Problem" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">01 &middot; The Cost</p>
+      <h1>When a test suite stops being trusted</h1>
+      <ul class="ladder">
+        <li>
+          A failure shows up. The first question isn't "what broke," it's "is
+          this even real?"
+        </li>
+        <li class="muted">
+          Once that question is routine, the suite has been demoted from safety
+          net to background noise.
+        </li>
+        <li class="muted">
+          It isn't a tooling problem. Playwright, Cypress, Selenium: it doesn't
+          matter which. Nobody wrote down what a good test is allowed to do.
+        </li>
+        <li class="punch">
+          Once an AI agent is writing the tests, that written discipline is the
+          only thing standing between "the agent said it's done" and "it's
+          actually done."
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="The Full-Stack Mindset" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">02 &middot; The Mindset</p>
+      <h1>Shift left, or inspect the house after it's built</h1>
+      <p class="intro-line">
+        Testing was traditionally a siloed activity done after development. Full
+        stack testing begins in parallel with development and runs through the
+        whole delivery cycle. That's shift-left testing.
+      </p>
+      <div class="diagram-wrap compact">
+        <svg
+          viewBox="0 0 800 300"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="shiftleft-title shiftleft-desc"
+        >
+          <title id="shiftleft-title">Shift-left testing stages</title>
+          <desc id="shiftleft-desc">
+            Two swimlanes showing shift-left testing: before-development stages
+            of three amigos, design validation, and story kickoff handing off
+            into during-development stages of unit and functional tests, CI run,
+            and dev-box exploratory testing.
+          </desc>
+          <defs>
+            <marker
+              id="arrow-shiftleft"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="var(--muted)" />
+            </marker>
+            <marker
+              id="arrow-shiftleft-accent"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <line
+            x1="40"
+            y1="55"
+            x2="760"
+            y2="55"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <line
+            x1="40"
+            y1="150"
+            x2="760"
+            y2="150"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <line
+            x1="40"
+            y1="245"
+            x2="760"
+            y2="245"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <line
+            x1="110"
+            y1="55"
+            x2="110"
+            y2="245"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <text
+            x="75"
+            y="99"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.1em"
+            fill="var(--muted)"
+          >
+            BEFORE
+          </text>
+          <text
+            x="75"
+            y="111"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.1em"
+            fill="var(--muted)"
+          >
+            DEV
+          </text>
+          <text
+            x="75"
+            y="194"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.1em"
+            fill="var(--muted)"
+          >
+            DURING
+          </text>
+          <text
+            x="75"
+            y="206"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.1em"
+            fill="var(--muted)"
+          >
+            DEV
+          </text>
+          <line
+            x1="290"
+            y1="100"
+            x2="330"
+            y2="100"
+            stroke="var(--muted)"
+            stroke-width="1.2"
+            marker-end="url(#arrow-shiftleft)"
+          />
+          <line
+            x1="480"
+            y1="100"
+            x2="520"
+            y2="100"
+            stroke="var(--muted)"
+            stroke-width="1.2"
+            marker-end="url(#arrow-shiftleft)"
+          />
+          <line
+            x1="595"
+            y1="125"
+            x2="215"
+            y2="173"
+            stroke="var(--accent)"
+            stroke-width="1.4"
+            marker-end="url(#arrow-shiftleft-accent)"
+          />
+          <rect
+            x="364"
+            y="126"
+            width="84"
+            height="14"
+            rx="2"
+            fill="var(--paper)"
+          />
+          <text
+            x="406"
+            y="137"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--accent)"
+          >
+            SHIFT LEFT
+          </text>
+          <line
+            x1="290"
+            y1="198"
+            x2="330"
+            y2="198"
+            stroke="var(--muted)"
+            stroke-width="1.2"
+            marker-end="url(#arrow-shiftleft)"
+          />
+          <line
+            x1="480"
+            y1="198"
+            x2="520"
+            y2="198"
+            stroke="var(--muted)"
+            stroke-width="1.2"
+            marker-end="url(#arrow-shiftleft)"
+          />
+          <rect
+            x="140"
+            y="75"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="215"
+            y="97"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Three amigos
+          </text>
+          <text
+            x="215"
+            y="111"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            biz + dev + QA
+          </text>
+          <rect
+            x="330"
+            y="75"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="405"
+            y="97"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Design validation
+          </text>
+          <text
+            x="405"
+            y="111"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            UX + business
+          </text>
+          <rect
+            x="520"
+            y="75"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="595"
+            y="97"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Story kickoff
+          </text>
+          <text
+            x="595"
+            y="111"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            edge cases
+          </text>
+          <rect
+            x="140"
+            y="173"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="215"
+            y="195"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Unit + functional
+          </text>
+          <text
+            x="215"
+            y="209"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            written with the story
+          </text>
+          <rect
+            x="330"
+            y="173"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="405"
+            y="195"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            CI run
+          </text>
+          <text
+            x="405"
+            y="209"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            every commit
+          </text>
+          <rect
+            x="520"
+            y="173"
+            width="150"
+            height="50"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="595"
+            y="195"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Dev-box exploratory
+          </text>
+          <text
+            x="595"
+            y="209"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            manual check
+          </text>
+          <text
+            x="400"
+            y="275"
+            text-anchor="middle"
+            font-family="'Instrument Serif',serif"
+            font-style="italic"
+            font-size="13"
+            fill="var(--ink)"
+          >
+            Feedback moves earlier, before the story ever reaches a formal test
+            phase.
+          </text>
+        </svg>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>The payoff:</b> before shifting left, a team gets all its feedback
+          after development is "done." After, roughly half of that feedback
+          arrives before the story even reaches the testing phase.
+        </p>
+        <p class="callout">
+          <b>Quality is the team's responsibility:</b> performing these checks
+          at every phase has to be owned by every role on the team, not just
+          testers or QA. Building the relevant testing skill is everyone's job.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          That's the premise this whole harness rests on: if quality is
+          everyone's job, the rules for a good test have to be written down and
+          portable to everyone, not kept in one QA engineer's head.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="What a Harness Is" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">03 &middot; The Definition</p>
+      <h1>Two things. Nothing more.</h1>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">Part one</p>
+          <h3>One mindset document</h3>
+          <p>
+            The handful of non-negotiable rules a reviewer would enforce by hand
+            anyway: how tests get their data, how they wait, where assertions
+            may live.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">Part two</p>
+          <h3>A few lifecycle playbooks</h3>
+          <p>
+            Plan, build-and-verify, ship: repeatable sequences the agent
+            follows, not fresh instructions typed every time.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Context engineering:</b> an agent only behaves as well as the
+          information in front of it at the moment it decides something. Nothing
+          written down, nothing loaded, doesn't exist for that run.
+        </p>
+        <p class="callout">
+          <b>External reinforcement loop:</b> left alone, an agent's incentive
+          is to report success. A test, an audit, a git hook: something outside
+          its own judgment it cannot talk its way past.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          The harness is not the rules file by itself. It's the rules file plus
+          something automatic that checks whether the rules were followed.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Rules vs Skills" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">04 &middot; Rules vs Skills</p>
+      <h1>Two parts, two different loading rules</h1>
+      <p class="intro-line">
+        Part one and part two from the last slide don't just differ in content,
+        they differ in how an agent even gets access to them.
+      </p>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">Rules</p>
+          <h3>Always in context</h3>
+          <p>
+            A rule file loads into every single conversation automatically,
+            whether this turn needs it or not. That's why the mindset document
+            has to stay short: nothing can start a test without it already
+            loaded.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">Skills</p>
+          <h3>Loaded on demand</h3>
+          <p>
+            A skill is discovered by its own description when the task matches,
+            or invoked by name on purpose. The lifecycle playbooks live here, so
+            a conversation that isn't planning or shipping a test never has to
+            carry their full detail.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>A skill is not a prompt template:</b> it bundles domain knowledge
+          with a repeatable workflow. That's why pw_plan, pw_work, and pw_setup
+          are multi-step documents with named modes, not one-line instructions.
+        </p>
+        <p class="callout">
+          <b>And there's a third layer, below both:</b> permissions.
+          <code>.claude/settings.json</code> in this repo denies
+          <code>git commit</code> and <code>git push</code> outright. A rule can
+          be reasoned around; a denied permission cannot.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          Not everything an agent might need belongs in every conversation.
+          Rules are the floor that's never optional. Skills are the toolbox
+          reached for only when the job calls for it.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="The Test Pyramid" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">05 &middot; The Test Pyramid</p>
+      <h1>The shape isn't a matter of taste</h1>
+      <p class="intro-line">
+        One line of strategy: test the right scope of functionality at the
+        layer that gives the team the fastest feedback. As scope grows, each
+        test costs more to write, run, and maintain, so the shape has to taper.
+      </p>
+      <div class="diagram-wrap">
+        <svg
+          viewBox="0 0 800 460"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="d2-title d2-desc"
+        >
+          <title id="d2-title">The test pyramid ratio</title>
+          <desc id="d2-desc">
+            Pyramid showing the recommended ratio: a broad base of unit and
+            integration tests at 10x, a narrower band of service tests at 5x,
+            and a small accent-highlighted apex of UI-driven tests at the
+            smallest count, the most expensive layer to over-invest in.
+          </desc>
+          <line
+            x1="100"
+            y1="380"
+            x2="100"
+            y2="70"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <polygon points="96,70 104,70 100,60" fill="var(--muted)" />
+          <text
+            x="82"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.14em"
+            fill="var(--muted)"
+            transform="rotate(-90 82 226)"
+          >
+            COST PER TEST &uarr;
+          </text>
+          <polygon
+            points="140,380 660,380 560,274 240,274"
+            fill="var(--surface)"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <text
+            x="400"
+            y="322"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="13"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Unit + Integration
+          </text>
+          <text
+            x="400"
+            y="340"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="9"
+            fill="var(--muted)"
+          >
+            10x &middot; fastest, cheapest
+          </text>
+          <polygon
+            points="240,274 560,274 460,168 340,168"
+            fill="var(--surface)"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+          />
+          <text
+            x="400"
+            y="218"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="13"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Service
+          </text>
+          <text
+            x="400"
+            y="235"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="9"
+            fill="var(--muted)"
+          >
+            5x &middot; moderate effort
+          </text>
+          <polygon
+            points="400,62 460,168 340,168"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1.2"
+          />
+          <text
+            x="400"
+            y="146"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            UI-driven
+          </text>
+          <text
+            x="505"
+            y="143"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="9"
+            letter-spacing="0.04em"
+            fill="var(--accent)"
+          >
+            x &middot; fewest, priciest
+          </text>
+          <text
+            x="400"
+            y="440"
+            text-anchor="middle"
+            font-family="'Instrument Serif',serif"
+            font-style="italic"
+            font-size="13"
+            fill="var(--ink)"
+          >
+            Honeycomb, test trophy: shapes vary, but scope always shrinks as
+            cost per test grows.
+          </text>
+        </svg>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Run the arithmetic on your own suite:</b> a unit test finishes in
+          milliseconds. A UI-driven test that logs in, navigates, and waits on
+          real network round trips takes 30 to 90 seconds. Two hundred of those
+          is a nightly job, not a feedback loop. The same coverage proved one
+          layer down finishes before the coffee does.
+        </p>
+        <p class="callout">
+          <b>Not always possible:</b> missing test environments, tooling gaps
+          (e.g. barcode scanning), or the right skills can make the ideal
+          pyramid impractical. When that happens, be deliberate about the
+          trade-off, not silent about it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Antipatterns" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">06 &middot; Antipatterns</p>
+      <h1>Two ways the pyramid breaks, and AI makes both worse</h1>
+      <p class="intro-line">
+        Both of these are easy to fall into when an agent can generate a dozen
+        tests in a minute. The speed is real; so is the fact that neither
+        failure mode announces itself. Watch for the early symptoms instead.
+      </p>
+      <div class="diagram-wrap compact">
+        <svg
+          viewBox="0 0 800 340"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="antipatterns-title antipatterns-desc"
+        >
+          <title id="antipatterns-title">Two pyramid antipatterns</title>
+          <desc id="antipatterns-desc">
+            Side-by-side comparison of the ice-cream cone, an inverted pyramid
+            heavy with UI tests and thin on unit tests, and the cupcake, where
+            the same test case is duplicated at every layer including an
+            oversized UI layer.
+          </desc>
+          <line
+            x1="400"
+            y1="100"
+            x2="400"
+            y2="290"
+            stroke="var(--rule-solid)"
+            stroke-width="1"
+            stroke-dasharray="4,3"
+          />
+          <rect
+            x="386"
+            y="188"
+            width="28"
+            height="18"
+            rx="2"
+            fill="var(--paper)"
+          />
+          <text
+            x="400"
+            y="201"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="9"
+            font-weight="600"
+            letter-spacing="0.06em"
+            fill="var(--muted)"
+          >
+            VS
+          </text>
+          <polygon
+            points="110,112 330,112 330,160 110,160"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1.2"
+          />
+          <text
+            x="220"
+            y="140"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            UI-driven
+          </text>
+          <text
+            x="340"
+            y="144"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--accent)"
+          >
+            MANY
+          </text>
+          <rect
+            x="160"
+            y="172"
+            width="120"
+            height="48"
+            rx="4"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="220"
+            y="200"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Service
+          </text>
+          <text
+            x="290"
+            y="204"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            SOME
+          </text>
+          <rect
+            x="195"
+            y="232"
+            width="50"
+            height="48"
+            rx="4"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="220"
+            y="260"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Unit
+          </text>
+          <text
+            x="260"
+            y="264"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            FEW
+          </text>
+          <text
+            x="220"
+            y="304"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Ice-cream cone
+          </text>
+          <text
+            x="220"
+            y="320"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            inverted: heavy at the top, thin at the base
+          </text>
+          <polygon
+            points="485,112 675,112 675,160 485,160"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1.2"
+          />
+          <text
+            x="580"
+            y="140"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            UI-driven
+          </text>
+          <rect
+            x="500"
+            y="172"
+            width="160"
+            height="48"
+            rx="4"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="580"
+            y="200"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Service
+          </text>
+          <rect
+            x="500"
+            y="232"
+            width="160"
+            height="48"
+            rx="4"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="580"
+            y="260"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="11"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Unit
+          </text>
+          <text
+            x="580"
+            y="304"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Cupcake
+          </text>
+          <text
+            x="580"
+            y="320"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            same case, tested again at every layer
+          </text>
+        </svg>
+      </div>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">Invert the pyramid</p>
+          <h3>The ice-cream cone</h3>
+          <p>
+            Symptoms: long waits for feedback, defects caught only during
+            release testing, elaborate manual testing despite having
+            "automation," and frustration with tests that don't produce the
+            right results.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">Duplicate the pyramid</p>
+          <h3>The cupcake</h3>
+          <p>
+            Usually surfaces when developers and testers work in silos, each
+            adding the same case at their own layer. AI-assisted bulk generation
+            increases the odds of this happening, because it's fast to generate
+            coverage without checking what already exists.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Earliest tell of the ice-cream cone:</b> finding regression defects
+          during manual story testing. Root-cause it immediately, before the
+          problem compounds.
+        </p>
+        <p class="callout">
+          <b>Fix for the cupcake:</b> bring developers and testers together,
+          ideally at story kickoff, to decide which layer owns which test case,
+          and write that decision on the story card.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          This is exactly why "could a lower layer prove this cheaper?" is the
+          first question in our pyramid gate: not a style preference, a defense
+          against both of these.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Autonomy Has a Floor" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">07 &middot; Autonomy Has a Floor</p>
+      <h1>Even told to work autonomously, some steps don't skip</h1>
+      <p class="intro-line">
+        All three skills in this harness open with the same line, verbatim. It
+        is the first instruction the agent reads, before any mode is chosen.
+      </p>
+      <div class="code">
+        <pre><span class="c"># .claude/skills/pw_plan/SKILL.md, pw_work/SKILL.md, pw_setup/SKILL.md</span>
+
+<span class="k">**Never skip `AskUserQuestion` steps in this skill,</span>
+<span class="k">  even if told to work autonomously.**</span></pre>
+      </div>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">Plan before anything is written</p>
+          <h3>Read-only until a human approves</h3>
+          <p>
+            pw_plan's first instruction is to enter plan mode. It reads the
+            existing specs and the app source, brainstorms cases, and writes no
+            file at all until the plan itself is approved.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">Ship never means commit</p>
+          <h3>The hard rule, stated twice</h3>
+          <p>
+            pw_work's SHIP mode stages the change and drafts a message. It
+            never runs git commit or git push, in any mode, even if the user
+            says yes to a commit prompt. A human runs that line themselves.
+          </p>
+        </div>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          The checkpoint lives in the instructions, not in the agent's judgment
+          about whether pausing is worth it. "Just get it done" can't dissolve
+          it.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Name the Bucket" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">08 &middot; Debugging Discipline</p>
+      <h1>Three debuggers, one rule</h1>
+      <p class="intro-line">
+        pw_work's VERIFY mode carries three debug branches, split only by where
+        the evidence comes from. All three converge on the same first move
+        before any code is touched.
+      </p>
+      <div class="demo-checkpoints">
+        <div class="checkpoint">
+          <p class="num">EVIDENCE: SAVED TRACE</p>
+          <h4>Local failure</h4>
+          <p>
+            Run the failing test with tracing forced on, then read the trace
+            through the command line, never the blocking GUI viewer.
+          </p>
+        </div>
+        <div class="checkpoint">
+          <p class="num">EVIDENCE: LIVE PAGE</p>
+          <h4>Race or timing bug</h4>
+          <p>
+            Pause a running test at an exact line, then probe the live, paused
+            browser directly when a static trace alone can't explain it.
+          </p>
+        </div>
+        <div class="checkpoint">
+          <p class="num">EVIDENCE: CI ARTIFACT</p>
+          <h4>Only fails in CI</h4>
+          <p>
+            Pull the trace out of the failed workflow run and treat it as the
+            authoritative record, not a local re-run that may not even reproduce
+            it.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Before fixing anything:</b> name which bucket the failure is in.
+          Test bug, application bug, environment or config problem, or flake.
+        </p>
+        <p class="callout">
+          <b>Never paper over it:</b> a flake or an application bug doesn't get
+          fixed with a longer timeout, a retry, or force: true. That just hides
+          it from the next person who hits it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Audit With Fresh Eyes" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">09 &middot; Audit Discipline</p>
+      <h1>A fresh session, scoped to what actually changed</h1>
+      <p class="intro-line">
+        VERIFY's audit branch runs deliberately as a new session, with no
+        memory of having written the code it is reviewing.
+      </p>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">Scope</p>
+          <h3>The uncommitted diff, nothing else</h3>
+          <p>
+            No uncommitted changes means nothing to review: stop. A test that's
+            already committed doesn't get silently re-opened by this pass.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">Posture</p>
+          <h3>Fresh eyes, cited rules</h3>
+          <p>
+            The reviewing agent is explicitly told it is not the agent that
+            wrote the code, and to question every choice. Every finding cites
+            the specific rule it violates. An opinion with no rule behind it
+            doesn't belong in the report.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Severity, not a wall of red:</b> findings split into must-fix,
+          should-fix, and suggestions, plus a "what looks good" section, so the
+          report reinforces what was done right too.
+        </p>
+        <p class="callout">
+          <b>Define done before the agent starts:</b> an autonomous fix only
+          works when "done" was stated up front. Here it's exact, and it's the
+          same command every time, so there's nothing for the agent to
+          interpret:
+          <code>npx playwright test -g "&lt;title&gt;" --retries 0</code> passes,
+          and nothing else broke.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          Same posture as Pillar 1: the rule wins the argument, not the agent's
+          opinion of its own work.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Personal vs Project" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">10 &middot; The Skills Ecosystem</p>
+      <h1>Two copies of the same skill, one precedence rule</h1>
+      <p class="intro-line">
+        pw_setup's SHARE and SYNC modes exist because of one fact about how
+        Claude Code resolves skills.
+      </p>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">On your machine</p>
+          <h3>Personal always overrides project</h3>
+          <p>
+            If a skill with the same name exists both in your personal setup and
+            in a project, your personal copy runs. Always. Pushing a copy into
+            the project does not change that.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">For everyone else</p>
+          <h3>The project copy is for them</h3>
+          <p>
+            Teammates without your personal setup, and CI machines with no
+            personal copy at all, get the project version. That is the entire
+            reason SHARE exists.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>When the two drift:</b> SYNC does not auto-merge. For every item
+          that differs, a human picks which side wins, project overwrites
+          personal or personal overwrites project, one at a time.
+        </p>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          The same judgment-over-automation stance as the rest of this harness:
+          a human decides, the tool never guesses.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Pillar 1 -- Judgment" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">11 &middot; Pillar One</p>
+      <h1>Judgment over compliance</h1>
+      <p class="intro-line">
+        Four places where this harness is deliberately stricter than the
+        default advice most teams have absorbed. Each one trades convenience
+        for a specific defect class it refuses to let through.
+      </p>
+
+      <p class="cmp-topic">01 &middot; Retries</p>
+      <div class="cmp-row">
+        <div class="cmp-card">
+          <p class="cmp-tag">Common guidance</p>
+          <p class="cmp-claim">
+            Judicious retries are an acceptable bandage for genuinely flaky,
+            transient failures.
+          </p>
+          <p class="cmp-why">
+            Trades short-term green builds for hidden race conditions.
+          </p>
+        </div>
+        <div class="cmp-vs">VS</div>
+        <div class="cmp-card enforce">
+          <p class="cmp-tag">What we enforce</p>
+          <p class="cmp-claim">
+            retries: 0. A flaky pass is a defect report, never smoothed over.
+          </p>
+          <p class="cmp-why">
+            Any retry gives the next race condition a place to hide.
+          </p>
+        </div>
+      </div>
+
+      <p class="cmp-topic">02 &middot; Test data</p>
+      <div class="cmp-row">
+        <div class="cmp-card">
+          <p class="cmp-tag">Common guidance</p>
+          <p class="cmp-claim">
+            Database-backed data pools are legitimate for expensive or finite
+            test data.
+          </p>
+          <p class="cmp-why">
+            A pool proves the DB accepts rows, not that the app's own write path
+            works.
+          </p>
+        </div>
+        <div class="cmp-vs">VS</div>
+        <div class="cmp-card enforce">
+          <p class="cmp-tag">What we enforce</p>
+          <p class="cmp-claim">
+            No direct database writes: every row comes from a real user flow.
+          </p>
+          <p class="cmp-why">
+            Catches the app's own create-path breaking silently.
+          </p>
+        </div>
+      </div>
+
+      <p class="cmp-topic">03 &middot; Locator strategy</p>
+      <div class="cmp-row">
+        <div class="cmp-card">
+          <p class="cmp-tag">Common guidance</p>
+          <p class="cmp-claim">
+            Dedicated test-id attributes rank above semantic / role-based
+            locators.
+          </p>
+          <p class="cmp-why">
+            A test-id can point at the right pixel while hiding a broken
+            accessible name.
+          </p>
+        </div>
+        <div class="cmp-vs">VS</div>
+        <div class="cmp-card enforce">
+          <p class="cmp-tag">What we enforce</p>
+          <p class="cmp-claim">
+            Role- and label-based locators only: a missing accessible name is a
+            defect.
+          </p>
+          <p class="cmp-why">
+            The locator strategy doubles as a continuous accessibility check.
+          </p>
+        </div>
+      </div>
+
+      <p class="cmp-topic">04 &middot; Self-healing locators</p>
+      <div class="cmp-row">
+        <div class="cmp-card">
+          <p class="cmp-tag">Common guidance</p>
+          <p class="cmp-claim">
+            AI-assisted self-healing locators are a meaningful reliability
+            improvement.
+          </p>
+          <p class="cmp-why">
+            Optimizes for the test staying green, even pointing at the wrong
+            element.
+          </p>
+        </div>
+        <div class="cmp-vs">VS</div>
+        <div class="cmp-card enforce">
+          <p class="cmp-tag">What we enforce</p>
+          <p class="cmp-claim">
+            Locator ambiguity is flagged for a human, never auto-healed.
+          </p>
+          <p class="cmp-why">
+            Optimizes for the test staying honest, not just green.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Network Determinism" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">12 &middot; Network Determinism</p>
+      <h1>Record once, replay exactly</h1>
+      <p class="intro-line">
+        The discipline Pillar 1 argues for locators and test data applies one
+        layer down, to the network: capture what really happened, then replay
+        it exactly. Codified in
+        <code>.claude/rules/playwright-scripting.md</code>.
+      </p>
+      <p class="code-label">Record &mdash; once, with the real service reachable</p>
+      <div class="code">
+        <pre>await page.<span class="k">routeFromHAR</span>(<span class="o">"e2e/.har/articles.har"</span>, {
+  url: <span class="o">"**/api/articles**"</span>,
+  update: <span class="k">true</span>,          <span class="c">// writes the archive from this run</span>
+})</pre>
+      </div>
+      <p class="code-label">Replay &mdash; every run after</p>
+      <div class="code">
+        <pre>await page.<span class="k">routeFromHAR</span>(<span class="o">"e2e/.har/articles.har"</span>, {
+  url: <span class="o">"**/api/articles**"</span>,
+  update: <span class="k">false</span>,         <span class="c">// same response, service up or not</span>
+})</pre>
+      </div>
+      <p class="code-label">Or capture it straight from a browser, no test needed</p>
+      <div class="code">
+        <pre><span class="c"># BASE_URL comes from .env.test.&lt;env&gt; -- never a hardcoded host</span>
+npx playwright open --save-har=e2e/.har/articles.har <span class="o">"$BASE_URL"</span></pre>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Not the same as mocking:</b> a recorded archive is something that
+          actually happened. Scope <code>url</code> to the endpoints the test
+          depends on: a HAR that captures fonts, analytics, and images is slow
+          to replay and breaks on changes that have nothing to do with the test.
+        </p>
+        <p class="callout">
+          <b>Intercept only what a real run can't produce:</b> a 500, a
+          timeout, an empty list. Never intercept the app's own create-path to
+          fake test data, that's the one check Rule 4 exists to protect.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Pillar 2 -- Leanness" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">13 &middot; Pillar Two</p>
+      <h1>Lean beats sprawling</h1>
+      <p class="intro-line">
+        The obvious way to add capability to a harness is to add another skill
+        file. Every one of those is a new thing a person has to remember exists
+        and choose correctly between. Depth belongs inside a workflow instead.
+      </p>
+      <p class="code-label">The entire harness &mdash; 3 skills, 7 modes, 10 branches</p>
+      <div class="code">
+        <pre><span class="k">pw_plan</span>    plan mode &rarr; researched coverage plan &rarr; .claude/pw-plans/
+
+<span class="k">pw_work</span>    IMPLEMENT   new test <span class="o">|</span> refactor into page objects
+           VERIFY      audit <span class="o">|</span> debug: trace <span class="o">|</span> live attach <span class="o">|</span> CI artifact
+           SHIP        stage + draft message  <span class="c">(never commits)</span>
+
+<span class="k">pw_setup</span>   INIT <span class="o">|</span> SHARE <span class="o">|</span> SYNC</pre>
+      </div>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">One skill per action</p>
+          <h3>Ten-plus entry points</h3>
+          <p>
+            A separate file for each debug scenario, each generation case, each
+            setup task. Someone has to pick the right one every time, and the
+            files drift out of sync with each other.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">One skill per lifecycle stage</p>
+          <h3>Three entry points, same depth</h3>
+          <p>
+            You pick by where you are in the work &mdash; planning, building,
+            setting up &mdash; which you already know without being told. The
+            branching happens inside, where it costs nobody anything.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Count the things a person must choose between, not the
+          capabilities:</b> depth inside a mode is free. A new file at the top
+          level is not. Skill count is a cost, not a feature.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="New Ticket to Green Test" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">14 &middot; From Ticket to Green Test</p>
+      <h1>Plan, implement, verify, ship: one pipeline</h1>
+      <p class="intro-line">
+        Pillar 2 made the case in the abstract. This is the same lesson on a
+        concrete ticket: one plan, three modes, and exactly one place where a
+        human has to act.
+      </p>
+      <div class="diagram-wrap compact">
+        <svg
+          viewBox="0 0 800 360"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="d5-title d5-desc"
+        >
+          <title id="d5-title">Playwright ticket-to-ship pipeline</title>
+          <desc id="d5-desc">
+            A five-stage pipeline from a coverage plan through implement,
+            verify, and ship, ending with a human commit, with the ship stage
+            marked as the gate where the human takes over.
+          </desc>
+          <defs>
+            <marker
+              id="arrow-pipeline"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="var(--muted)" />
+            </marker>
+          </defs>
+          <line
+            x1="152"
+            y1="220"
+            x2="188"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow-pipeline)"
+          />
+          <line
+            x1="304"
+            y1="220"
+            x2="340"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow-pipeline)"
+          />
+          <line
+            x1="456"
+            y1="220"
+            x2="492"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow-pipeline)"
+          />
+          <line
+            x1="608"
+            y1="220"
+            x2="644"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow-pipeline)"
+          />
+          <circle cx="96" cy="165" r="5" fill="var(--accent)" />
+          <rect
+            x="40"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="96"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            TICKET
+          </text>
+          <text
+            x="96"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            pw_plan
+          </text>
+          <rect
+            x="192"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="248"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            BUILD
+          </text>
+          <text
+            x="248"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            IMPLEMENT
+          </text>
+          <rect
+            x="344"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="400"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            CHECK
+          </text>
+          <text
+            x="400"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            VERIFY
+          </text>
+          <rect
+            x="496"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1.2"
+          />
+          <text
+            x="552"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--accent)"
+          >
+            GATE
+          </text>
+          <text
+            x="552"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            SHIP
+          </text>
+          <text
+            x="552"
+            y="245"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            stage only
+          </text>
+          <rect
+            x="648"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="704"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            DONE
+          </text>
+          <text
+            x="704"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Human
+          </text>
+          <text
+            x="704"
+            y="241"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            commits
+          </text>
+          <line
+            x1="40"
+            y1="296"
+            x2="760"
+            y2="296"
+            stroke="var(--rule-solid)"
+            stroke-width="0.8"
+          />
+          <circle cx="48" cy="316" r="4" fill="var(--accent)" />
+          <text
+            x="60"
+            y="320"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            ONE SKILL SET: pw_plan + pw_work (3 modes)
+          </text>
+          <rect
+            x="520"
+            y="310"
+            width="14"
+            height="12"
+            rx="2"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1"
+          />
+          <text
+            x="542"
+            y="320"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            WHERE THE HUMAN TAKES OVER
+          </text>
+        </svg>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          The step count and the skill count are different numbers. Four stages
+          here, two skills covering them, one gate where the agent stops.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Live Demo" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">15 &middot; Live Demo</p>
+      <h1>Three checkpoints, one unfamiliar app</h1>
+      <p class="intro-line">
+        Everything from here happens on a public demo app none of us have
+        touched. If this only worked on a familiar project, it wouldn't prove
+        anything.
+      </p>
+      <div class="diagram-wrap compact">
+        <svg
+          viewBox="0 0 800 360"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="d4-title d4-desc"
+        >
+          <title id="d4-title">
+            Lifecycle pipeline with live-demo checkpoints
+          </title>
+          <desc id="d4-desc">
+            A five-stage pipeline -- Init Rules, Coverage Plan, Build and
+            Verify, Audit, Ship -- with Init Rules, Coverage Plan, and Audit
+            marked as the three checkpoints demonstrated live, and Audit marked
+            as the enforcement gate.
+          </desc>
+          <defs>
+            <marker
+              id="arrow"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="var(--muted)" />
+            </marker>
+          </defs>
+          <line
+            x1="152"
+            y1="220"
+            x2="188"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="304"
+            y1="220"
+            x2="340"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="456"
+            y1="220"
+            x2="492"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="608"
+            y1="220"
+            x2="644"
+            y2="220"
+            stroke="var(--muted)"
+            stroke-width="1"
+            marker-end="url(#arrow)"
+          />
+          <circle cx="96" cy="165" r="5" fill="var(--accent)" />
+          <rect
+            x="40"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="96"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            SETUP
+          </text>
+          <text
+            x="96"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Init Rules
+          </text>
+          <circle cx="248" cy="165" r="5" fill="var(--accent)" />
+          <rect
+            x="192"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="248"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            PLAN
+          </text>
+          <text
+            x="248"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Coverage
+          </text>
+          <text
+            x="248"
+            y="241"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Plan
+          </text>
+          <rect
+            x="344"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="400"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            BUILD
+          </text>
+          <text
+            x="400"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Build +
+          </text>
+          <text
+            x="400"
+            y="241"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Verify
+          </text>
+          <rect
+            x="496"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1.2"
+          />
+          <text
+            x="552"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--accent)"
+          >
+            GATE
+          </text>
+          <text
+            x="552"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Audit
+          </text>
+          <text
+            x="552"
+            y="245"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            fill="var(--muted)"
+          >
+            + git hook
+          </text>
+          <rect
+            x="648"
+            y="180"
+            width="112"
+            height="80"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--ink)"
+            stroke-width="1"
+          />
+          <text
+            x="704"
+            y="204"
+            text-anchor="middle"
+            font-family="'Geist Mono',monospace"
+            font-size="7"
+            letter-spacing="0.12em"
+            fill="var(--muted)"
+          >
+            SHIP
+          </text>
+          <text
+            x="704"
+            y="226"
+            text-anchor="middle"
+            font-family="'Geist',sans-serif"
+            font-size="12"
+            font-weight="600"
+            fill="var(--ink)"
+          >
+            Ship
+          </text>
+          <line
+            x1="40"
+            y1="296"
+            x2="760"
+            y2="296"
+            stroke="var(--rule-solid)"
+            stroke-width="0.8"
+          />
+          <circle cx="48" cy="316" r="4" fill="var(--accent)" />
+          <text
+            x="60"
+            y="320"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            DEMOED LIVE ON CONDUIT-FRONTEND
+          </text>
+          <rect
+            x="320"
+            y="310"
+            width="14"
+            height="12"
+            rx="2"
+            fill="var(--accent-tint)"
+            stroke="var(--accent)"
+            stroke-width="1"
+          />
+          <text
+            x="342"
+            y="320"
+            font-family="'Geist Mono',monospace"
+            font-size="8"
+            letter-spacing="0.08em"
+            fill="var(--muted)"
+          >
+            WHERE THE RULE BECOMES A GATE
+          </text>
+        </svg>
+      </div>
+      <div class="demo-checkpoints">
+        <div class="checkpoint">
+          <p class="num">CHECKPOINT A</p>
+          <h4>Init Rules</h4>
+          <p>
+            Write the mindset document from a blank slate, out loud. If it needs
+            more than a page or two, the architecture is probably hiding
+            something the rules shouldn't have to cover.
+          </p>
+        </div>
+        <div class="checkpoint">
+          <p class="num">CHECKPOINT B</p>
+          <h4>Coverage Plan</h4>
+          <p>
+            Before any test code exists, produce a plan you could reject in two
+            minutes, including what should NOT be an E2E test because a cheaper
+            layer already proves it.
+          </p>
+        </div>
+        <div class="checkpoint gate">
+          <p class="num">CHECKPOINT C</p>
+          <h4>Audit (+ git hook)</h4>
+          <p>
+            Run the audit against a test that deliberately breaks a rule. If
+            time allows: the same check wired into a pre-commit hook (Husky +
+            lint-staged), now it's a gate, not a step someone can skip.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Install the Rule and the Skills" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">16 &middot; How to Get Started</p>
+      <h1>Two real files, not a concept</h1>
+      <p class="intro-line">
+        testing-mindset.md and the three pw_* skills already exist in this repo.
+        Installing them into your own project is one skill, run once.
+      </p>
+      <div class="cs-grid">
+        <div class="cs-item">
+          <p class="cs-n">RULE</p>
+          <h3>testing-mindset.md</h3>
+          <p>
+            The actual file enforced in this repo: pyramid gate, locators,
+            waiting, test data, flakiness, assertions, independence,
+            enforcement, each with a stated why, not just a rule.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">pw_setup &middot; INIT</p>
+          <h3>Scaffold a new framework</h3>
+          <p>
+            Installs Playwright, config, directory structure, and the rule file
+            in one pass, for a project that has none of this yet.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">pw_setup &middot; SHARE</p>
+          <h3>Commit the skills for your team</h3>
+          <p>
+            Copies pw_plan, pw_work, and pw_setup itself from your personal
+            setup into the project, so teammates and CI get the same workflow.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">pw_setup &middot; SYNC</p>
+          <h3>Keep both sides honest</h3>
+          <p>
+            Reconciles drift between your personal copy and the project's, one
+            item at a time, your call on which side wins.
+          </p>
+        </div>
+      </div>
+      <p class="code-label">Run it once, in your own project</p>
+      <div class="code">
+        <pre><span class="k">&gt; /pw_setup</span>
+
+<span class="c"># It asks, and waits for your answer, before writing anything:</span>
+  How many test environments, and the baseURL for each?
+  Which auth roles?  <span class="o">guest | user | admin | ...</span>
+  Explore the source for the login flow, or shall I use placeholders?
+  Wire a mechanical audit into a pre-commit hook?
+
+<span class="c"># Then it writes:</span>
+  e2e/                     specs, one folder per role
+  playwright.config.ts     one project per role, retries: 0 locally
+  playwright-utils/        fixtures, helpers, pages, .auth/
+  .claude/rules/           architecture + scripting rules
+  .husky/pre-commit        the gate <span class="c">(if you said yes)</span></pre>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Same three skills either way:</b> brand-new project or one that
+          already has tests. INIT scaffolds, SHARE commits the skills for your
+          team, SYNC reconciles the two copies when they drift.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="A Real Ticket End to End" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">17 &middot; How to Get Started</p>
+      <h1>One ticket, three skill calls, start to finish</h1>
+      <p class="intro-line">
+        This is the whole loop, typed out. Nothing is paraphrased &mdash; these
+        are the actual invocations and what comes back from each.
+      </p>
+      <div class="code">
+        <pre><span class="c"># The ticket you were handed</span>
+<span class="c">#   CON-412 -- a signed-in user can favorite an article from the</span>
+<span class="c">#   global feed, and the favorite count goes up by one</span>
+
+<span class="k">&gt; /pw_plan</span> a signed-in user favorites an article from the global feed
+
+  <span class="o">&rarr;</span> enters plan mode <span class="c">(read-only -- writes nothing yet)</span>
+  <span class="o">&rarr;</span> reads e2e/**, src/app/features/article/**, testing-mindset.md
+  <span class="o">&rarr;</span> returns P0/P1/P2 cases, plus what should NOT be an E2E test
+  <span class="o">&rarr;</span> <span class="k">you approve</span> <span class="o">&rarr;</span> .claude/pw-plans/favorite-article-from-feed.md
+
+<span class="k">&gt; /pw_work</span> implement the first P0 case from favorite-article-from-feed
+
+  <span class="o">&rarr;</span> reads the plan, the existing specs, the component source
+  <span class="o">&rarr;</span> writes e2e/user/favorite.spec.ts
+  <span class="o">&rarr;</span> asks before running, then: playwright test -g "..." --retries 0
+
+<span class="k">&gt; /pw_work</span> verify
+
+  <span class="o">&rarr;</span> fresh-eyes audit, scoped to <span class="k">git diff HEAD</span> and nothing else
+  <span class="o">&rarr;</span> must-fix <span class="o">|</span> should-fix <span class="o">|</span> suggestions <span class="o">|</span> what looks good
+  <span class="o">&rarr;</span> every finding cites the rule it violates
+
+<span class="k">&gt; /pw_work</span> ship
+
+  <span class="o">&rarr;</span> stages the change, drafts the commit message
+  <span class="o">&rarr;</span> <span class="k">stops.</span> You run git commit yourself.</pre>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>You don't have to name the mode:</b> "debug this failing test"
+          goes straight to VERIFY's debug branch, "refactor these into page
+          objects" goes to IMPLEMENT's branch B. The skill states which mode
+          it picked before it acts, so you can correct it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Auth and storageState" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">18 &middot; How to Get Started</p>
+      <h1>Log in once, reuse the session everywhere</h1>
+      <p class="intro-line">
+        pw_setup already does this, it just hasn't been said out loud yet.
+      </p>
+      <div class="two-col">
+        <div class="concept-card">
+          <p class="tag">The problem</p>
+          <h3>Logging in on every test is slow and brittle</h3>
+          <p>
+            A real login flow through the UI, repeated for every single test,
+            multiplies run time and multiplies the chances of the login flow
+            itself breaking the thing it wasn't even testing.
+          </p>
+        </div>
+        <div class="concept-card">
+          <p class="tag">The fix, already built</p>
+          <h3>storageState, generated once per role</h3>
+          <p>
+            pw_setup's INIT mode writes auth.setup.ts and saves storageState per
+            role, run once as its own project with everything else depending on
+            it. Swapping to a different role for one test is a config change,
+            not a rewrite.
+          </p>
+        </div>
+      </div>
+      <div class="code-two">
+        <div>
+          <p class="code-label">e2e/auth.setup.ts &mdash; runs once</p>
+          <div class="code">
+            <pre>setup(<span class="o">"authenticate as user"</span>, async ({ page }) =&gt; {
+  await page.goto(<span class="o">"/"</span>)
+  await page.getByRole(<span class="o">"link"</span>, { name: <span class="o">"Sign in"</span> }).click()
+  await page.getByRole(<span class="o">"textbox"</span>, { name: <span class="o">"Email"</span> })
+    .fill(process.env.USER_EMAIL!)
+  await page.getByLabel(<span class="o">"Password"</span>)
+    .fill(process.env.USER_PASSWORD!)
+  await page.getByRole(<span class="o">"button"</span>, { name: <span class="o">"Sign in"</span> }).click()
+  await page.waitForURL(<span class="o">"**/"</span>)
+  await page.context().<span class="k">storageState</span>({ path: userFile })
+})</pre>
+          </div>
+        </div>
+        <div>
+          <p class="code-label">playwright.config.ts &mdash; every test reuses it</p>
+          <div class="code">
+            <pre>projects: [
+  { name: <span class="o">"auth-setup"</span>, testMatch: <span class="o">"auth.setup.ts"</span> },
+  {
+    name: <span class="o">"user"</span>,
+    testDir: <span class="o">"./e2e/user"</span>,
+    use: { <span class="k">storageState</span>: <span class="o">"playwright-utils/.auth/user.json"</span> },
+    dependencies: [<span class="o">"auth-setup"</span>],
+  },
+  {
+    name: <span class="o">"guest"</span>,
+    testDir: <span class="o">"./e2e/guest"</span>,
+    <span class="c">// no storageState -- unauthenticated on purpose</span>
+  },
+]</pre>
+          </div>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Credentials and URLs never appear in a test.</b> They come from
+          <code>.env.test.&lt;env&gt;</code>, which is gitignored, and every
+          test navigates with relative paths so <code>baseURL</code> stays the
+          one place an environment is named.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Codegen" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">19 &middot; How to Get Started</p>
+      <h1>Two ways to get a locator you didn't guess</h1>
+      <p class="intro-line">
+        Rule 2 says never guess a locator. These are the two tools that mean
+        you never have to &mdash; one when you can read the app's source, one
+        when you can't.
+      </p>
+      <p class="code-label">Codegen &mdash; perform the flow once, get a draft back</p>
+      <div class="code">
+        <pre><span class="c"># Records every click and fill as you do it, emits test code live</span>
+npx playwright codegen <span class="o">"$BASE_URL"</span>
+
+<span class="c"># Start from a signed-in session instead of the login page</span>
+npx playwright codegen \
+  --load-storage=playwright-utils/.auth/user.json <span class="o">"$BASE_URL"</span></pre>
+      </div>
+      <p class="code-label">The CLI &mdash; when the app's source isn't yours to read</p>
+      <div class="code">
+        <pre>npx playwright-cli open <span class="o">"$BASE_URL"</span>
+npx playwright-cli snapshot            <span class="c"># roles + names + refs</span>
+npx playwright-cli click &lt;ref&gt;
+npx playwright-cli <span class="k">generate-locator</span> &lt;ref&gt;   <span class="c"># ask, don't guess</span>
+npx playwright-cli close</pre>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Both outputs are drafts, not tests.</b> Codegen happily emits a
+          CSS chain. pw_work's IMPLEMENT mode re-checks every locator against
+          the priority order &mdash; role, label, text, placeholder, testid,
+          and only then CSS &mdash; and replaces what doesn't hold up.
+        </p>
+        <p class="callout">
+          <b>If no semantic locator exists:</b> when the source is yours, the
+          fix is a <code>data-testid</code> added to the component, not a class
+          selector. When it isn't, the skill flags it so you can ask the owning
+          team for one.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="When a Test Goes Red" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">20 &middot; How to Get Started</p>
+      <h1>When it goes red, name the bucket first</h1>
+      <p class="intro-line">
+        The temptation is to make the red go away. The rule is to find out what
+        the red is telling you &mdash; and the evidence is already on disk.
+      </p>
+      <div class="code">
+        <pre><span class="k">&gt; /pw_work</span> debug "User can favorite an article from the feed"
+
+<span class="c"># 1. Re-run it: tracing forced on, retries off</span>
+npx playwright test -g <span class="o">"User can favorite an article..."</span> --trace on --retries 0
+
+<span class="c"># 2. Read the trace from the CLI -- not the GUI viewer, which blocks</span>
+npx playwright trace
+  open test-results/<span class="o">&lt;dir&gt;</span>/trace.zip
+  actions --grep=<span class="o">"expect"</span>    <span class="c"># find the step marked with an X</span>
+  action 14                  <span class="c"># what it tried, what it got</span>
+  snapshot 14 --name after   <span class="c"># the DOM at that instant</span>
+  requests                   <span class="c"># did the API call even fire?</span>
+  console                    <span class="c"># did the app throw?</span>
+  close
+
+<span class="c"># 3. Before touching any code, say which one it is:</span>
+<span class="k">   test bug  |  application bug  |  environment/config  |  flake</span></pre>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Two other branches, same first move:</b> when a static trace
+          can't explain a race, VERIFY pauses the live run at an exact line and
+          probes the real page. When it only fails in CI, it pulls the trace
+          out of the failed workflow run with <code>gh</code> and treats that
+          as authoritative, not a local re-run that may not reproduce it.
+        </p>
+        <p class="callout">
+          <b>What never counts as a fix:</b> a longer timeout, a retry, or
+          <code>force: true</code> on an application bug or a flake. That just
+          hides it from whoever hits it next.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Make the Rule a Gate" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">21 &middot; How to Get Started</p>
+      <h1>A rule only checked by memory is a hope</h1>
+      <p class="intro-line">
+        Rule 8 is the one that makes the other seven real. Anything checkable
+        mechanically gets checked mechanically &mdash; pw_setup wires this up,
+        and asks you which rules to include.
+      </p>
+      <div class="code-two">
+        <div>
+          <p class="code-label">e2e/audit.mjs</p>
+          <div class="code">
+            <pre>const CHECKS = [
+  {
+    rule: <span class="o">"Rule 3 -- Waiting"</span>,
+    pattern: <span class="k">/waitForTimeout\s*\(/g</span>,
+    message:
+      <span class="o">"Fixed wait found. Use a "</span> +
+      <span class="o">"web-first assertion instead."</span>,
+  },
+  {
+    rule: <span class="o">"Rule 4 -- Test data"</span>,
+    pattern: <span class="k">/\b(INSERT INTO|db\.collection\()/g</span>,
+    message:
+      <span class="o">"Direct seeding. Create data "</span> +
+      <span class="o">"through the app's own flow."</span>,
+  },
+]</pre>
+          </div>
+        </div>
+        <div>
+          <p class="code-label">.husky/pre-commit</p>
+          <div class="code">
+            <pre>npx lint-staged
+node e2e/audit.mjs
+
+<span class="c"># A non-zero exit blocks the commit.</span>
+<span class="c"># Not a review step someone skips</span>
+<span class="c"># under deadline pressure -- a gate.</span></pre>
+          </div>
+          <p class="code-note">
+            Every finding cites the rule, the file, the line, and the offending
+            code &mdash; never an opinion.
+          </p>
+        </div>
+      </div>
+      <div class="callout-row">
+        <p class="callout">
+          <b>Be honest about the gap:</b> two of the eight rules have a
+          mechanical check today. "One behavior per test" and "could a lower
+          layer prove this cheaper" have no reliable pattern, so they stay
+          review-only. That gap is the backlog &mdash; and the rule file says
+          so about itself, rather than pretending the other six are covered.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Write Your First Test Right Now" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">22 &middot; How to Get Started</p>
+      <h1>Pick a real scenario from your own app</h1>
+      <p class="intro-line">
+        Not a toy example, something your team actually needs tested. Three
+        skill calls, start to finish.
+      </p>
+      <div class="demo-checkpoints">
+        <div class="checkpoint">
+          <p class="num">pw_plan</p>
+          <h4>Describe the scenario</h4>
+          <p>
+            It researches your own code, brainstorms cases, and won't write a
+            file until you approve the plan.
+          </p>
+        </div>
+        <div class="checkpoint">
+          <p class="num">pw_work &middot; IMPLEMENT + VERIFY</p>
+          <h4>Write it, then audit it</h4>
+          <p>
+            The test gets written and run. A fresh pass audits it against
+            testing-mindset.md's own rules and reads the failure evidence if
+            it's red.
+          </p>
+        </div>
+        <div class="checkpoint gate">
+          <p class="num">pw_work &middot; SHIP</p>
+          <h4>Stage it, never commit it</h4>
+          <p>
+            Drafts a summary and stages the change. You still press commit
+            yourself.
+          </p>
+        </div>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          Leave with one open terminal and one real coverage plan, and this
+          session already paid for itself.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Before You Leave This Room" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">23 &middot; How to Get Started</p>
+      <h1>Three things, before you close this tab</h1>
+      <div class="demo-checkpoints">
+        <div class="checkpoint">
+          <p class="num">INSTALLED</p>
+          <h4>pw_setup has run</h4>
+          <p>
+            Once, for this project. The rule and the skill set are both here
+            now, not just in this demo repo.
+          </p>
+        </div>
+        <div class="checkpoint gate">
+          <p class="num">PLANNED</p>
+          <h4>One real coverage plan</h4>
+          <p>
+            From pw_plan, for one real scenario in your own app, reviewed and
+            approved before any test code exists.
+          </p>
+        </div>
+        <div class="checkpoint">
+          <p class="num">VERIFIED</p>
+          <h4>pw_work has run at least once</h4>
+          <p>
+            Even just the audit branch, on whatever you already have. See what
+            it finds.
+          </p>
+        </div>
+      </div>
+      <ul class="ladder">
+        <li class="punch">
+          Ask the two closing questions about your own team's harness, not this
+          one.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Closing" hidden>
+    <div class="slide-inner">
+      <p class="eyebrow">24 &middot; Closing</p>
+      <h1>Anyone can reach it now</h1>
+      <p class="close-mark">
+        Nothing you just watched required deep Playwright expertise from the
+        person running it. It required a written mindset, a plan reviewed before
+        code, and a check that enforces itself.
+      </p>
+      <p class="close-mark">
+        When the discipline is written down and enforced automatically, any
+        engineer who can describe a user journey can own the test quality for
+        their own feature. Not because the bar got lower. Because now anyone can
+        reach it.
+      </p>
+      <p class="close-question">
+        Is this rule actually enforced, or just hoped for?
+      </p>
+    </div>
+  </section>
+
+  <section class="slide cheat-sheet-slide" data-title="Cheat Sheet" hidden>
+    <div class="slide-inner cs-wrap">
+      <p class="eyebrow">Take This With You</p>
+      <h1 class="cs-h1">Field Checklist</h1>
+      <p class="intro-line">
+        Pin this next to your editor. Printing this page (Ctrl/Cmd+P) from
+        anywhere in this deck prints only this one-page handout.
+      </p>
+
+      <div class="cs-q0">
+        <b>Before adding any test, ask:</b> could a unit or component test prove
+        this cheaper? E2E is for journeys that cross a real boundary (routing,
+        auth, API, storage), not for validation or pure logic. If a lower layer
+        could catch it, it does not belong here.
+      </div>
+
+      <div class="cs-grid">
+        <div class="cs-item">
+          <p class="cs-n">01 &middot; LOCATORS</p>
+          <h3>Role and label first</h3>
+          <p>
+            Never guess a locator. A missing or ambiguous accessible name is a
+            defect in the app, not a reason to fall back to a CSS selector.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">02 &middot; WAITING</p>
+          <h3>No fixed waits, ever</h3>
+          <p>
+            Web-first assertions and condition-based waits only. A sleep encodes
+            one machine's timing and breaks on the next.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">03 &middot; DATA</p>
+          <h3>Real flows, not seeding</h3>
+          <p>
+            Every record comes from the app's own create-path. Seeding a
+            database proves the database works, not the app.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">04 &middot; FLAKINESS</p>
+          <h3>retries: 0</h3>
+          <p>
+            A test that fails then passes on retry is a defect report about a
+            race condition, not noise to smooth over.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">05 &middot; ASSERTIONS</p>
+          <h3>Structural, one behavior</h3>
+          <p>
+            One behavior per test. Assert generated or timestamped content
+            structurally, never on exact rendered text.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">06 &middot; INDEPENDENCE</p>
+          <h3>Own identity, any order</h3>
+          <p>
+            Every test runs alone and in any order. No test may depend on state
+            another test left behind.
+          </p>
+        </div>
+        <div class="cs-item">
+          <p class="cs-n">07 &middot; ENFORCEMENT</p>
+          <h3>A hook, not a hope</h3>
+          <p>
+            A rule only checked by memory is not a rule. Wire what can be
+            checked mechanically into an audit or a commit hook.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="deck-nav" aria-label="Slide navigation">
+  <button class="nav-btn" id="prevBtn" type="button">&larr; Prev</button>
+  <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+  <span class="counter" id="counter">1 / 8</span>
+  <button class="nav-btn" id="nextBtn" type="button">Next &rarr;</button>
+</nav>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(
+      document.querySelectorAll(".slide"),
+    );
+    var dotsWrap = document.getElementById("dots");
+    var counter = document.getElementById("counter");
+    var prevBtn = document.getElementById("prevBtn");
+    var nextBtn = document.getElementById("nextBtn");
+    var current = 0;
+
+    slides.forEach(function (_, i) {
+      var dot = document.createElement("button");
+      dot.className = "dot";
+      dot.type = "button";
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-label", "Go to slide " + (i + 1));
+      dot.addEventListener("click", function () {
+        show(i);
+      });
+      dotsWrap.appendChild(dot);
+    });
+    var dots = Array.prototype.slice.call(dotsWrap.children);
+
+    function show(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[current].hidden = true;
+      current = i;
+      slides[current].hidden = false;
+      slides[current].scrollTop = 0;
+      dots.forEach(function (d, idx) {
+        if (idx === current) d.setAttribute("aria-current", "true");
+        else d.removeAttribute("aria-current");
+      });
+      counter.textContent = current + 1 + " / " + slides.length;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      try {
+        localStorage.setItem("pw-harness-deck-slide", String(current));
+      } catch (e) {}
+    }
+
+    prevBtn.addEventListener("click", function () {
+      show(current - 1);
+    });
+    nextBtn.addEventListener("click", function () {
+      show(current + 1);
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+        show(current + 1);
+        e.preventDefault();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        show(current - 1);
+        e.preventDefault();
+      } else if (e.key === "Home") {
+        show(0);
+        e.preventDefault();
+      } else if (e.key === "End") {
+        show(slides.length - 1);
+        e.preventDefault();
+      }
+    });
+
+    var start = 0;
+    try {
+      var saved = parseInt(localStorage.getItem("pw-harness-deck-slide"), 10);
+      if (!isNaN(saved) && saved >= 0 && saved < slides.length) start = saved;
+    } catch (e) {}
+    show(start);
+  })();
+</script>
